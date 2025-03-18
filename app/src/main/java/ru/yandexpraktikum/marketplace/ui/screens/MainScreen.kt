@@ -162,7 +162,7 @@ fun ProductCard(
                 //val actionDescription = stringResource(R.string.add_product_to_cart, product.name)
                 Icon(
                     Icons.Default.ShoppingCart,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.add_to_cart),
                     tint = Color(0xFFAAAAAA),
                     modifier = Modifier
                         .clickable(
