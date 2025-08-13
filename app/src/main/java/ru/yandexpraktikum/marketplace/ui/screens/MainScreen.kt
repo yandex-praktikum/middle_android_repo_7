@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -28,6 +27,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,10 +36,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -78,7 +80,7 @@ fun MainScreen(onProductClick: (Int) -> Unit) {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            //val searchBarDescription = stringResource(R.string.searchbar_description)
+            val searchBarDescription = stringResource(R.string.searchbar_description)
             SearchBar(
                 query = searchQuery,
                 onQueryChange = { searchQuery = it },
@@ -93,8 +95,9 @@ fun MainScreen(onProductClick: (Int) -> Unit) {
                 },
                 placeholder = {
                     Text(
-                        text = stringResource(R.string.search_products),
-                        color = Color(0xFFAAAAAA)
+                        modifier = Modifier.semantics {
+                            contentDescription = searchBarDescription },
+                        text = stringResource(R.string.search_products)
                     )
                 },
                 modifier = Modifier
@@ -137,11 +140,21 @@ fun ProductCard(
     onClick: () -> Unit,
     onAddToCart: () -> Unit
 ) {
+    val actionLabel = stringResource(R.string.add_product_to_cart, product.name)
     Card(
         modifier = modifier
             .fillMaxWidth()
             .semantics {
-                //
+                contentDescription = "Продукт ${product.name}"
+                customActions = listOf(
+                    CustomAccessibilityAction(
+                        label = actionLabel,
+                        action = {
+                            onAddToCart()
+                            true
+                        }
+                    )
+                )
             }
     ) {
         Column {
@@ -150,7 +163,7 @@ fun ProductCard(
             ) {
                 AsyncImage(
                     model = product.imageUrl,
-                    contentDescription = null,
+                    contentDescription = product.description,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(150.dp),
@@ -173,26 +186,25 @@ fun ProductCard(
                         text = product.name,
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        color = Color(0xFFAAAAAA)
+                        overflow = TextOverflow.Ellipsis
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = stringResource(R.string.price_format, product.price),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFFAAAAAA)
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
-                //val actionDescription = stringResource(R.string.add_product_to_cart, product.name)
+                val actionDescription = stringResource(R.string.add_product_to_cart, product.name)
                 Icon(
                     Icons.Default.ShoppingCart,
                     contentDescription = stringResource(R.string.add_to_cart),
-                    tint = Color(0xFFAAAAAA),
                     modifier = Modifier
-                        .clickable {
+                        .clickable(
+                            onClickLabel = actionDescription
+                        ) {
                             onAddToCart()
                         }
-                        .size(16.dp)
+                        .minimumInteractiveComponentSize()
                 )
             }
         }
